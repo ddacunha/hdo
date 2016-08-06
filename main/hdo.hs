@@ -16,6 +16,7 @@ import           System.Console.GetOpt
 import           System.Environment
 import           System.IO
 import           System.IO.Error              (isDoesNotExistError)
+import           System.Exit
 import           Network.DO.Commands
 import           Network.DO.Droplets.Commands
 import           Network.DO.Droplets.Utils
@@ -89,8 +90,13 @@ main :: IO ()
 main = do
   hSetBuffering stdin NoBuffering
   args <- getArgs
-  (opts, cmds) <- parseOptions args
-  runWreq $ pairEffectM (\ _ b -> return b) (mkDOClient opts) (parseCommandOptions cmds)
+  case head(args) of
+    "-h" -> do
+      putStrLn usage
+      exitSuccess
+    _ -> do
+      (opts, cmds) <- parseOptions args
+      runWreq $ pairEffectM (\ _ b -> return b) (mkDOClient opts) (parseCommandOptions cmds)
 
 parseCommandOptions :: (MonadIO m) => [String] -> FreeT (Coproduct DO DropletCommands) (RESTT m) ()
 parseCommandOptions ("droplets":"create":args) = do
